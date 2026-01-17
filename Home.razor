@@ -1,0 +1,88 @@
+﻿@page "/"
+@using Design_casa_vizual.Models
+
+<div class="dashboard">
+    <div class="sidebar">
+        <h2>Camerele Mele</h2>
+        <input @bind="numeCameraNoua" placeholder="Nume camera..." />
+        <button @onclick="AdaugaCamera">Adaugă</button>
+
+        <div class="lista-camere">
+            @foreach (var cam in toateCamerele)
+            {
+                <div class="item-camera @(cameraSelectata == cam ? "active" : "")" 
+                     @onclick="() => cameraSelectata = cam">
+                    @cam.NumeCamera
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="main-content">
+        @if (cameraSelectata != null)
+        {
+            <h1>Configurare @cameraSelectata.NumeCamera</h1>
+            <div class="form-mobilier">
+                <input @bind="numeObiect" placeholder="Piesă mobilier" />
+                <input @bind="pretObiect" type="number" placeholder="Preț" />
+                <input @bind="taxaObiect" type="number" placeholder="Montaj" />
+                <button @onclick="AdaugaMobilier">Adaugă Obiect</button>
+            </div>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nume</th>
+                        <th>Preț Bază</th>
+                        <th>Montaj</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var obj in cameraSelectata.Obiecte)
+                    {
+                        <tr>
+                            <td>@obj.Nume</td>
+                            <td>@obj.PretBaza lei</td>
+                            <td>@(obj is PiesaMobilier p ? p.TaxaMontaj : 0) lei</td>
+                            <td>@obj.CalculeazaPretFinal() lei</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <h3>Total Cameră: @cameraSelectata.TotalCamera() lei</h3>
+        }
+        else
+        {
+            <p>Selectează o cameră din stânga pentru a începe designul.</p>
+        }
+    </div>
+</div>
+
+@code {
+    private List<Camera> toateCamerele = new();
+    private Camera? cameraSelectata;
+    private string numeCameraNoua = "";
+    
+    private string numeObiect = "";
+    private double pretObiect;
+    private double taxaObiect;
+
+    private void AdaugaCamera()
+    {
+        if (!string.IsNullOrWhiteSpace(numeCameraNoua))
+        {
+            toateCamerele.Add(new Camera(numeCameraNoua));
+            numeCameraNoua = "";
+        }
+    }
+
+    private void AdaugaMobilier()
+    {
+        if (cameraSelectata != null && !string.IsNullOrWhiteSpace(numeObiect))
+        {
+            cameraSelectata.AdaugaObiect(new PiesaMobilier(numeObiect, pretObiect, taxaObiect));
+            numeObiect = ""; pretObiect = 0; taxaObiect = 0;
+        }
+    }
+}
